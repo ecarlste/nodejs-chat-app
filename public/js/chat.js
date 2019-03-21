@@ -11,3 +11,14 @@ document.querySelector('#chat-form').addEventListener('submit', event => {
 
   socket.emit('sendMessage', messageToSend);
 });
+
+document.querySelector('#send-location').addEventListener('click', () => {
+  if (!navigator.geolocation) {
+    alert('Your browser does not support geolocation');
+  }
+
+  navigator.geolocation.getCurrentPosition(position => {
+    const { latitude, longitude } = position.coords;
+    socket.emit('sendLocation', { latitude, longitude });
+  });
+});
