@@ -3,11 +3,19 @@ const socket = io();
 const $chatForm = document.querySelector('#chat-form');
 const $chatFormInput = $chatForm.querySelector('input');
 const $chatFormButton = $chatForm.querySelector('button');
-
 const $sendLocationButton = document.querySelector('#send-location');
+const $messages = document.querySelector('#messages');
 
-socket.on('message', text => {
-  console.log(text);
+const messageTemplate = document.querySelector('#message-template').innerHTML;
+
+socket.on('message', message => {
+  console.log(message);
+  const html = Mustache.render(messageTemplate, { message });
+  $messages.insertAdjacentHTML('beforeend', html);
+});
+
+socket.on('locationMessage', url => {
+  console.log(url);
 });
 
 $chatForm.addEventListener('submit', event => {
