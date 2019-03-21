@@ -7,7 +7,7 @@ socket.on('message', text => {
 document.querySelector('#chat-form').addEventListener('submit', event => {
   event.preventDefault();
 
-  const messageToSend = document.querySelector('#chat-input').value;
+  const messageToSend = event.target.elements.message.value;
 
   socket.emit('sendMessage', messageToSend);
 });
