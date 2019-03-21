@@ -9,7 +9,9 @@ document.querySelector('#chat-form').addEventListener('submit', event => {
 
   const messageToSend = event.target.elements.message.value;
 
-  socket.emit('sendMessage', messageToSend);
+  socket.emit('sendMessage', messageToSend, () => {
+    console.log('Message delivered!');
+  });
 });
 
 document.querySelector('#send-location').addEventListener('click', () => {
@@ -19,6 +21,8 @@ document.querySelector('#send-location').addEventListener('click', () => {
 
   navigator.geolocation.getCurrentPosition(position => {
     const { latitude, longitude } = position.coords;
-    socket.emit('sendLocation', { latitude, longitude });
+    socket.emit('sendLocation', { latitude, longitude }, () => {
+      console.log('Location shared!');
+    });
   });
 });
