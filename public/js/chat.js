@@ -9,15 +9,18 @@ const $messages = document.querySelector('#messages');
 const messageTemplate = document.querySelector('#message-template').innerHTML;
 const locationMessageTemplate = document.querySelector('#location-message-template').innerHTML;
 
-socket.on('message', message => {
-  console.log(message);
-  const html = Mustache.render(messageTemplate, { message });
+socket.on('message', ({ text, createdAt }) => {
+  console.log(text);
+  const html = Mustache.render(messageTemplate, {
+    message: text,
+    createdAt: formatTime(createdAt)
+  });
   $messages.insertAdjacentHTML('beforeend', html);
 });
 
-socket.on('locationMessage', url => {
+socket.on('locationMessage', ({ url, createdAt }) => {
   console.log(url);
-  const html = Mustache.render(locationMessageTemplate, { url });
+  const html = Mustache.render(locationMessageTemplate, { url, createdAt: formatTime(createdAt) });
   $messages.insertAdjacentHTML('beforeend', html);
 });
 
@@ -50,3 +53,7 @@ $sendLocationButton.addEventListener('click', () => {
     });
   });
 });
+
+const formatTime = time => {
+  return moment(time).format('h:mmA');
+};
