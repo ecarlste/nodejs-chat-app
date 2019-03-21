@@ -3,6 +3,7 @@ const http = require('http');
 const path = require('path');
 const socketio = require('socket.io');
 const { generateMessage, generateLocationMessage } = require('./utils/messages');
+const { addUser, getUser, getUsersInRoom, removeUser } = require('./utils/users');
 
 const app = express();
 const server = http.createServer(app);
@@ -17,31 +18,46 @@ app.use(express.static(publicPath));
 io.on('connection', socket => {
   console.log('New WebSocket connection');
 
-  socket.on('join', ({ username, room }) => {
-    socket.join(room);
+  socket.on('join', (options, callback) => {
+    const { error, user } = addUser({ id: socket.id, ...options });
 
-    socket.emit('message', generateMessage('Welcome!'));
-    socket.broadcast.to(room).emit('message', generateMessage(`${username} has joined chat!`));
+    if (error) {
+      return callback(error);
+    }
 
-    // io.emit('message', generateMessage(message));
-    // callback();
+    socket.join(user.room);
+
+    socket.emit('message', generateMessage('admin', 'Welcome!'));
+    socket.broadcast
+      .to(user.room)
+      .emit('message', generateMessage('admin', `${user.username} has joined chat!`));
+
+    callback();
   });
 
   socket.on('sendMessage', (message, callback) => {
-    io.to('LV426').emit('message', generateMessage(message));
+    const { room, username } = getUser(socket.id);
+
+    io.to(room).emit('message', generateMessage(username, message));
     callback();
   });
 
   socket.on('sendLocation', ({ latitude, longitude }, callback) => {
-    io.to('LV426').emit(
+    const { room, username } = getUser(socket.id);
+
+    io.to(room).emit(
       'locationMessage',
-      generateLocationMessage(`https://google.com/maps?q=${latitude},${longitude}`)
+      generateLocationMessage(username, `https://google.com/maps?q=${latitude},${longitude}`)
     );
     callback();
   });
 
   socket.on('disconnect', () => {
-    io.to('LV426').emit('message', generateMessage('A user has left.'));
+    const user = removeUser(socket.id);
+
+    if (user) {
+      io.to(user.room).emit('message', generateMessage('admin', `${user.username} has left chat.`));
+    }
   });
 });
 

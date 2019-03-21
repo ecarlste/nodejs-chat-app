@@ -1,5 +1,3 @@
-import { emitKeypressEvents } from 'readline';
-
 const socket = io();
 
 const $chatForm = document.querySelector('#chat-form');
@@ -13,18 +11,21 @@ const locationMessageTemplate = document.querySelector('#location-message-templa
 
 const { username, room } = Qs.parse(location.search, { ignoreQueryPrefix: true });
 
-socket.on('message', ({ text, createdAt }) => {
-  console.log(text);
+socket.on('message', ({ text, createdAt, username }) => {
   const html = Mustache.render(messageTemplate, {
+    username,
     message: text,
     createdAt: formatTime(createdAt)
   });
   $messages.insertAdjacentHTML('beforeend', html);
 });
 
-socket.on('locationMessage', ({ url, createdAt }) => {
-  console.log(url);
-  const html = Mustache.render(locationMessageTemplate, { url, createdAt: formatTime(createdAt) });
+socket.on('locationMessage', ({ url, createdAt, username }) => {
+  const html = Mustache.render(locationMessageTemplate, {
+    username,
+    url,
+    createdAt: formatTime(createdAt)
+  });
   $messages.insertAdjacentHTML('beforeend', html);
 });
 
@@ -58,7 +59,12 @@ $sendLocationButton.addEventListener('click', () => {
   });
 });
 
-socket.emit('join', { username, room });
+socket.emit('join', { username, room }, error => {
+  if (error) {
+    alert(error);
+    location.href = '/';
+  }
+});
 
 const formatTime = time => {
   return moment(time).format('h:mmA');
